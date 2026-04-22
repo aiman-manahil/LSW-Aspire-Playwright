@@ -41,15 +41,56 @@ class LeadsPage(BasePage):
             self.page.locator("[class*='datepicker'] input, [class*='date-picker'] input").first.fill(contacted_date)
         
         self.page.wait_for_timeout(300)
+    
+    def fill_tags(self, tags: list):
+        tag_input = self.page.get_by_placeholder("Enter tag name and press Enter or click Add")
+    
+        for tag in tags:
+            tag_input.fill(tag)
+            tag_input.press("Enter")
+            self.page.wait_for_timeout(300)  # small wait between tags
+    def fill_phone(self, phone_number: str):
+        if not phone_number.startswith("+"):
+            raise ValueError(f"Phone must start with '+': {phone_number}")
 
-    def fill_lead_form(self, first_name, last_name, email, phone, assign, lifestyle, looking_for, status, move_in,lead_source,best_way,contact_status, contacted_date,message):
+        # Target the visible one specifically
+        self.page.locator("div.selected-flag:visible").last.click()
+        self.page.wait_for_timeout(300)
+
+        import re
+        options = self.page.get_by_role("option").all()
+
+        matched_option = None
+        matched_code = ""
+
+        for option in options:
+            text = option.inner_text()
+            codes = re.findall(r'\+\d+', text)
+            if codes:
+                code = codes[0]
+                if phone_number.startswith(code) and len(code) > len(matched_code):
+                    matched_option = option
+                    matched_code = code
+
+        if not matched_option:
+            raise ValueError(f"No country found in dropdown for: {phone_number}")
+
+        matched_option.click()
+        self.page.wait_for_timeout(300)
+
+        local_number = phone_number[len(matched_code):]
+        number_input = self.page.locator("input[type='tel']:visible").last
+        number_input.click(click_count=3)
+        number_input.fill("")
+        number_input.type(local_number)
+
+    def fill_lead_form(self, first_name, last_name, email, phone, assign, lifestyle, looking_for, status, move_in,lead_source,best_way,contact_status, contacted_date,message, tags=None):
         self.page.get_by_placeholder("First Name").fill(first_name)
         self.page.get_by_placeholder("Last Name").fill(last_name)
         self.page.wait_for_timeout(300)
 
         self.page.locator("input[type='email']").fill(email)
-        self.page.locator("input[type='tel']").fill(phone)
-        self.page.wait_for_timeout(300)
+        self.fill_phone(phone_number=phone)  # no country argument needed at all
         self.select_contact_status(contact_status, contacted_date)
 
         self.select_dropdown("Assign To User", assign)
@@ -61,18 +102,21 @@ class LeadsPage(BasePage):
 
         self.page.get_by_placeholder("What's the best way to contact you?").fill(best_way)
         self.page.get_by_placeholder("Add Message").fill(message)
+        if tags:
+            self.fill_tags(tags)
 
-        
 
     def save_lead(self):
         self.page.locator("button[type='submit']").click()
         self.page.wait_for_selector("text=Lead added successfully", timeout=15000)
 
-    def create_lead(self, first_name, last_name, email, phone, assign, lifestyle, looking_for,status,move_in,lead_source,best_way,contact_status, contacted_date,message):
+    def create_lead(self, first_name, last_name, email, phone, assign, lifestyle, looking_for,status,move_in,lead_source,best_way,contact_status, contacted_date,message,tags=None):
         self.click_add_lead()
-        self.fill_lead_form(first_name, last_name, email, phone, assign, lifestyle, looking_for,status,move_in,lead_source,best_way,contact_status, contacted_date,message)
+        self.fill_lead_form(first_name, last_name, email, phone, assign, lifestyle, looking_for,status,move_in,lead_source,best_way,contact_status, contacted_date,message, tags=tags)
         self.save_lead()
-
+    
+    
+    #DELETE LEAD METHOD
     def delete_lead(self, lead_name):
     # Find the row containing the lead name
         row = self.page.locator(f"tr:has-text('{lead_name}')")
@@ -96,3 +140,79 @@ class LeadsPage(BasePage):
             confirm.click()
 
         self.page.evaluate("document.querySelector('[class*=\"overflow\"]').scrollRight += 1000")
+
+    #EDIT LEAD METHOD
+    def edit_lead(self, lead_name, first_name=None, last_name=None, email=None, phone=None):
+    # Click the row directly to open the edit form
+        row = self.page.locator(f"tr:has-text('{lead_name}')")
+        row.click()
+        self.page.wait_for_timeout(500)
+
+    # Fill only the fields that are passed
+        if first_name:
+            self.page.get_by_placeholder("First Name").clear()
+            self.page.get_by_placeholder("First Name").fill(first_name)
+
+        if last_name:
+            self.page.get_by_placeholder("Last Name").clear()
+            self.page.get_by_placeholder("Last Name").fill(last_name)
+
+        if email:
+            self.page.locator("input[type='email']").clear()
+            self.page.locator("input[type='email']").fill(email)
+
+        if phone:
+            self.page.wait_for_selector("div.selected-flag", timeout=5000)  # wait for phone field to load
+            self.fill_phone(phone_number=phone)
+    # Save
+        self.page.locator("button[type='submit']").click()
+        self.page.wait_for_selector("text=Lead updated successfully", timeout=15000)
+    
+    def add_follow_up(self, follow_up_type=None, key_points=None, next_follow_up_date=None, next_action=None, lead_name=None):
+    # If lead_name is provided, open the lead first
+
+        if lead_name:
+            row = self.page.locator(f"tr:has-text('{lead_name}')")
+            row.click()
+            self.page.wait_for_timeout(500)
+
+    # Click the + Add Follow-Up button
+        self.page.get_by_role("button", name="Add Follow-Up").click()
+        self.page.wait_for_selector("text=Add Follow-Up", timeout=5000)
+
+    # Select follow-up type if provided
+        if follow_up_type:
+            self.page.get_by_role("button", name=follow_up_type, exact=True).click()
+
+    # Fill key points / questions
+        if key_points:
+            self.page.get_by_placeholder("Record details of the conversation...").fill(key_points)
+
+    # Fill next follow-up date (expects "YYYY-MM-DD" format)
+        if next_follow_up_date:
+            self.page.locator("input[type='date']").fill(next_follow_up_date)
+
+    # Fill next action
+        if next_action:
+            self.page.get_by_placeholder("e.g. Call again").fill(next_action)
+
+    # Save
+        self.page.get_by_role("button", name="Save Note").click()
+        self.page.wait_for_selector("text=Follow-up note added!", timeout=15000)
+
+# Click Update Lead to save the form
+        self.page.locator("button[type='submit']").click()
+        self.page.wait_for_selector("text=Lead updated successfully!", timeout=15000)
+
+    def click_filter_button(self):
+        self.page.get_by_role("button", name="Filters").click()
+    def apply_filter(self):
+        self.page.get_by_role("button", name="Apply Filter").click()
+        self.page.wait_for_timeout(500)
+    def lead_filters(self, lead_status,contact_status, assigned_user):
+    # Open filter modal
+        self.click_filter_button()
+        self.select_dropdown("Assigned User", assigned_user)
+        self.select_dropdown("Contact Status", contact_status)
+        self.select_dropdown("Lead Status", lead_status)
+        self.apply_filter()

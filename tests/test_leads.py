@@ -28,6 +28,7 @@ def test_create_lead(page, crm):
         lead_source="Referral",
         best_way="Lead automation test - Do not contact",
         message="This is a test lead created by automation. Please do not contact.",
+        tags=["VIP", "Referral", "Hot Lead"],  # pass a list
 
 # OR Contacted — pass the date
         contact_status="Contacted",

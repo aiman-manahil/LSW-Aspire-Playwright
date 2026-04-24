@@ -26,13 +26,14 @@ def page(request):
         page = context.new_page()
         yield page
 
-        # 📌 if test failed → save screenshot + trace
-        if request.node.rep_call.failed:
+        # ✅ safely check if rep_call exists before accessing it
+        failed = hasattr(request.node, "rep_call") and request.node.rep_call.failed
+
+        if failed:
             page.screenshot(
                 path=f"test-results/screenshots/{request.node.name}.png",
                 full_page=True
             )
-
             context.tracing.stop(
                 path=f"test-results/traces/{request.node.name}.zip"
             )

@@ -1,3 +1,6 @@
+from pydoc import text
+import re
+
 from pages.base_page import BasePage
 
 class LeadsPage(BasePage):
@@ -216,3 +219,45 @@ class LeadsPage(BasePage):
         self.select_dropdown("Contact Status", contact_status)
         self.select_dropdown("Lead Status", lead_status)
         self.apply_filter()
+    def clean(self, text):
+        import re
+        text = text.replace('\u200b', '').replace('\n', '').strip()
+        text = re.sub(r'\s*\(.*?\)', '', text)  # removes (07-Apr-2026)
+        return text.strip()
+
+    def get_all_lead_rows(self):
+        self.page.wait_for_selector("table tbody tr", timeout=10000)
+        self.page.wait_for_timeout(500)
+        rows = self.page.locator("table tbody tr")
+        data = []
+
+        for i in range(rows.count()):
+            row = rows.nth(i)
+            cells=row.locator("td")
+            data.append({
+                "Assigned User": self.clean(cells.nth(4).inner_text()),
+                "Status": self.clean(cells.nth(5).inner_text()),
+                "Contact Status": self.clean(cells.nth(6).inner_text())
+                })
+        return data
+
+    def view_lead(self, lead_name):
+    # Locate the row (it may not be visible yet)
+        row = self.page.locator(f"tr:has-text('{lead_name}')")
+    
+    # Scroll the row into view first (vertical scroll)
+        row.scroll_into_view_if_needed()
+        self.page.wait_for_timeout(500)
+
+        # Scroll horizontally to the end to reveal action button
+        self.page.evaluate("document.querySelector('[class*=\"overflow\"]').scrollLeft += 1000")
+        self.page.wait_for_timeout(300)
+
+    # Click the 3-dot menu button in that row
+        # Click 3-dot menu (try multiple locators)
+        action_btn = row.locator("[class*='action'], [class*='menu'], [class*='dot'], span, td").last
+        action_btn.click()
+        self.page.wait_for_timeout(300)
+
+    # Click the last option (View Details)
+        self.page.get_by_text("View Details", exact=True).click()

@@ -17,7 +17,7 @@ def test_delete_lead(page, crm):
 
     leads = LeadsPage(page)
     leads.open_leads()
-    leads.view_lead("Lyle Ward")  # 👈 use first name only in case full name spans columns
+    leads.view_lead("John Doe")  # 👈 use first name only in case full name spans columns
 
 
-    expect(page.get_by_role("heading", name="Lyle Ward")).to_be_visible(timeout=10000)
+    expect(page.get_by_role("heading", name="John Doe")).to_be_visible(timeout=10000)

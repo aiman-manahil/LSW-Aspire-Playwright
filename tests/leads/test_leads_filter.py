@@ -16,16 +16,16 @@ def test_edit_lead(page, crm):
     leads.open_leads()
 
     leads.lead_filters(
-        lead_status="Follow-Up",
+        lead_status="Toured",
         contact_status="Contacted",
-        assigned_user="Katlyn Symon"
+        assigned_user="Jane Smith"
     )
     results = leads.get_all_lead_rows()
 
     assert len(results) > 0, "No leads found after applying filters"
 
     for row in results:
-        assert row["Status"] == "Follow-Up"
-        assert row["Assigned User"] == "Katlyn Symon"
+        assert row["Status"] == "Toured"
+        assert row["Assigned User"] == "Jane Smith"
         assert row["Contact Status"] == "Contacted"
     

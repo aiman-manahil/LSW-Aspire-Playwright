@@ -1,7 +1,7 @@
 LSW = {
     "url": "https://crm.aspirelifestylelivingllc.com/login",
-    "email": "Lakeshoreadmin@gmail.com",
-    "password": "000@Lakeshorewoods",
+    "email": "automationtest@gmail.com",
+    "password": "autotest",
 }
 
 Aspire = {

@@ -22,10 +22,10 @@ def test_edit_lead(page, crm):
     # phone="+923004875948",  # keep phone the same
     #)
     leads.add_follow_up(
-        lead_name="Jane Smith",
+        lead_name="John Doe",
         follow_up_type="Mail",
         key_points="Discussed product features and pricing.",
-        next_follow_up_date="2026-04-21",
+        next_follow_up_date="2026-04-28",
         next_action="Schedule a demo",
     )
 

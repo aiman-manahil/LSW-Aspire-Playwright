@@ -20,7 +20,7 @@ def test_create_lead(page, crm):
         last_name="Doe",
         email="john@test.com",
         phone="+12345678900",
-        assign="Katlyn Symon",
+        assign="Jane Smith",
         lifestyle="Assisted Living",
         looking_for="Myself",
         status="Follow-Up",

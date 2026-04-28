@@ -1,5 +1,4 @@
-from pydoc import text
-import re
+
 
 from pages.base_page import BasePage
 
@@ -176,11 +175,13 @@ class LeadsPage(BasePage):
 
         if lead_name:
             row = self.page.locator(f"tr:has-text('{lead_name}')")
-            row.click()
+            row.locator("td").nth(1).click()
             self.page.wait_for_timeout(500)
+            
 
     # Click the + Add Follow-Up button
         self.page.get_by_role("button", name="Add Follow-Up").click()
+        self.page.screenshot(path="after_followup_btn.png")
         self.page.wait_for_selector("text=Add Follow-Up", timeout=5000)
 
     # Select follow-up type if provided
@@ -261,3 +262,9 @@ class LeadsPage(BasePage):
 
     # Click the last option (View Details)
         self.page.get_by_text("View Details", exact=True).click()
+
+    def aspire_view_leads(self, lead_name):
+        # Click the row directly to open the edit form
+        row = self.page.locator(f"tr:has-text('{lead_name}')")
+        row.click()
+        self.page.wait_for_timeout(500)

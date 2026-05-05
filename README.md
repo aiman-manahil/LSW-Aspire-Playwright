@@ -1,5 +1,5 @@
 
-# QA Automation Demo – Playwright + Pytest
+# QA Automation – Playwright + Pytest
 
 This project demonstrates a structured QA automation framework using Playwright with Pytest and Page Object Model (POM).
 

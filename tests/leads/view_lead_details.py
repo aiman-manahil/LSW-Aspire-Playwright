@@ -6,7 +6,7 @@ from pages.leads_page import LeadsPage
 from config.config import LSW
 
 @pytest.mark.parametrize("crm", [LSW])
-def test_delete_lead(page, crm):
+def test_view_lead(page, crm):
 
     page.goto(crm["url"])
 

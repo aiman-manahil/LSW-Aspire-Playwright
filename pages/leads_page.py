@@ -1,5 +1,3 @@
-
-
 from pages.base_page import BasePage
 
 class LeadsPage(BasePage):
